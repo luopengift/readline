@@ -96,12 +96,12 @@ func (t *Terminal) Readline() *Operation {
 }
 
 // return rune(0) if meet EOF
-func (t *Terminal) ReadRune() rune {
+func (t *Terminal) ReadRune() (rune, int, error) {
 	ch, ok := <-t.outchan
 	if !ok {
-		return rune(0)
+		return rune(0), 0, nil
 	}
-	return ch
+	return ch, 0, nil
 }
 
 func (t *Terminal) IsReading() bool {

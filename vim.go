@@ -37,7 +37,7 @@ func (o *opVim) IsEnableVimMode() bool {
 	return o.cfg.VimMode
 }
 
-func (o *opVim) handleVimNormalMovement(r rune, readNext func() rune) (t rune, handled bool) {
+func (o *opVim) handleVimNormalMovement(r rune, readNext func() (rune, int, error)) (t rune, handled bool) {
 	rb := o.op.buf
 	handled = true
 	switch r {
@@ -59,9 +59,10 @@ func (o *opVim) handleVimNormalMovement(r rune, readNext func() rune) (t rune, h
 			rb.MoveBackward()
 		}
 	case 'r':
-		rb.Replace(readNext())
+		ch, _, _ := readNext()
+		rb.Replace(ch)
 	case 'd':
-		next := readNext()
+		next, _, _ := readNext()
 		switch next {
 		case 'd':
 			rb.Erase()
@@ -81,7 +82,7 @@ func (o *opVim) handleVimNormalMovement(r rune, readNext func() rune) (t rune, h
 	case 'e', 'E':
 		rb.MoveToEndWord()
 	case 'f', 'F', 't', 'T':
-		next := readNext()
+		next, _, _ := readNext()
 		prevChar := r == 't' || r == 'T'
 		reverse := r == 'F' || r == 'T'
 		switch next {
@@ -95,7 +96,7 @@ func (o *opVim) handleVimNormalMovement(r rune, readNext func() rune) (t rune, h
 	return t, true
 }
 
-func (o *opVim) handleVimNormalEnterInsert(r rune, readNext func() rune) (t rune, handled bool) {
+func (o *opVim) handleVimNormalEnterInsert(r rune, readNext func() (rune, int, error)) (t rune, handled bool) {
 	rb := o.op.buf
 	handled = true
 	switch r {
@@ -111,7 +112,7 @@ func (o *opVim) handleVimNormalEnterInsert(r rune, readNext func() rune) (t rune
 	case 'S':
 		rb.Erase()
 	case 'c':
-		next := readNext()
+		next, _, _ := readNext()
 		switch next {
 		case 'c':
 			rb.Erase()
@@ -130,7 +131,7 @@ func (o *opVim) handleVimNormalEnterInsert(r rune, readNext func() rune) (t rune
 	return
 }
 
-func (o *opVim) HandleVimNormal(r rune, readNext func() rune) (t rune) {
+func (o *opVim) HandleVimNormal(r rune, readNext func() (rune, int, error)) (t rune) {
 	switch r {
 	case CharEnter, CharInterrupt:
 		o.ExitVimMode()
@@ -158,7 +159,7 @@ func (o *opVim) ExitVimInsertMode() {
 	o.vimMode = VIM_NORMAL
 }
 
-func (o *opVim) HandleVim(r rune, readNext func() rune) rune {
+func (o *opVim) HandleVim(r rune, readNext func() (rune, int, error)) rune {
 	if o.vimMode == VIM_NORMAL {
 		return o.HandleVimNormal(r, readNext)
 	}

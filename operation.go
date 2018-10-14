@@ -109,7 +109,7 @@ func (o *Operation) ioloop() {
 	for {
 		keepInSearchMode := false
 		keepInCompleteMode := false
-		r := o.t.ReadRune()
+		r, _, _ := o.t.ReadRune()
 		if o.GetConfig().FuncFilterInputRune != nil {
 			var process bool
 			r, process = o.GetConfig().FuncFilterInputRune(r)

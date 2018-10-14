@@ -40,7 +40,7 @@ type RemoteSvr struct {
 }
 
 type writeReply struct {
-	n   int
+	n   int64
 	err error
 }
 
@@ -160,7 +160,7 @@ func (r *RemoteSvr) Write(b []byte) (int, error) {
 	ctx := newWriteCtx(NewMessage(T_DATA, b))
 	r.writeChan <- ctx
 	reply := <-ctx.reply
-	return reply.n, reply.err
+	return int(reply.n), reply.err
 }
 
 func (r *RemoteSvr) EnterRawMode() error {
@@ -273,13 +273,13 @@ func NewMessage(t MsgType, data []byte) *Message {
 	return &Message{t, data}
 }
 
-func (m *Message) WriteTo(w io.Writer) (int, error) {
+func (m *Message) WriteTo(w io.Writer) (int64, error) {
 	buf := bytes.NewBuffer(make([]byte, 0, len(m.Data)+2+4))
 	binary.Write(buf, binary.BigEndian, int32(len(m.Data)+2))
 	binary.Write(buf, binary.BigEndian, m.Type)
 	buf.Write(m.Data)
 	n, err := buf.WriteTo(w)
-	return int(n), err
+	return int64(n), err
 }
 
 // -----------------------------------------------------------------------------
